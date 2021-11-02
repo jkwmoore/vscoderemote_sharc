@@ -52,6 +52,9 @@ VSC_MEM_PER_CPU_CORE=1024
 # Number of GPUs default        : 0 GPUs
 VSC_NUM_GPU=0
 
+# Waiting interval default      : 60 seconds
+VSC_WAITING_INTERVAL=60
+
 # SSH key location default      : no default
 VSC_SSH_KEY_PATH=""
 
@@ -69,7 +72,7 @@ Options:
 
         -u | --username       USERNAME         ETH username for SSH connection to Euler
         -n | --numcores       NUM_CPU          Number of CPU cores to be used on the cluster
-        -W | --runtime        RUN_TIME         Run time limit for the jupyter notebook in hours and minutes HH:MM
+        -W | --runtime        RUN_TIME         Run time limit for the code-server in hours and minutes HH:MM
         -m | --memory         MEM_PER_CORE     Memory limit in MB per core
 
 Optional arguments:
@@ -94,8 +97,9 @@ Format of configuration file:
 VSC_USERNAME=""             # ETH username for SSH connection to Euler
 VSC_NUM_CPU=1               # Number of CPU cores to be used on the cluster
 VSC_NUM_GPU=0               # Number of GPUs to be used on the cluster
-VSC_RUN_TIME="01:00"        # Run time limit for the jupyter notebook in hours and minutes HH:MM
+VSC_RUN_TIME="01:00"        # Run time limit for the code-server in hours and minutes HH:MM
 VSC_MEM_PER_CPU_CORE=1024   # Memory limit in MB per core
+VSC_WAITING_INTERVAL=60     # Time interval to check if the job on the cluster already started
 VSC_SSH_KEY_PATH=""         # Path to SSH key with non-standard name
 
 EOF
@@ -143,6 +147,11 @@ do
                 ;;
                 -g|--numgpu)
                 VSC_NUM_GPU=$2
+                shift
+                shift
+                ;;
+                -i|--interval)
+                VSC_WAITING_INTERVAL=$2
                 shift
                 shift
                 ;;
@@ -239,6 +248,14 @@ else
     echo -e "Memory per core set to $VSC_MEM_PER_CPU_CORE MB"
 fi
 
+# check if VSC_WAITING_INTERVAL is an integer
+if ! [[ "$VSC_WAITING_INTERVAL" =~ ^[0-9]+$ ]]; then
+        echo -e "Error: $VSC_WAITING_INTERVAL -> Waiting time interval [seconds] must be an integer, please try again\n"
+        display_help
+else
+    echo -e "Setting waiting time interval for checking the start of the job to $VSC_WAITING_INTERVAL seconds"
+fi
+
 # set modules
 VSC_MODULE_COMMAND="gcc/6.3.0 code-server/3.12.0 eth_proxy"
 
@@ -289,8 +306,17 @@ echo "Remote IP:\$VSC_IP_REMOTE" >> /cluster/home/$VSC_USERNAME/vscip
 code-server --bind-addr=\${VSC_IP_REMOTE}:8899
 ENDBSUB
 
-# sleep for 5 seconds to let the code-server start
-sleep 5
+# wait until batch job has started, poll every $VSC_WAITING_INTERVAL seconds to check if /cluster/home/$VSC_USERNAME/vscip exists
+# once the file exists and is not empty the batch job has started
+ssh $VSC_SSH_OPT <<ENDSSH
+while ! [ -e /cluster/home/$VSC_USERNAME/vscip -a -s /cluster/home/$VSC_USERNAME/vscip ]; do
+        echo 'Waiting for code-server to start, sleep for $VSC_WAITING_INTERVAL sec'
+        sleep $JNB_WAITING_INTERVAL
+done
+ENDSSH
+
+# give the code-server a few seconds to start
+sleep 7
 
 # get remote ip, port and token from files stored on Euler
 echo -e "Receiving ip, port and token from jupyter notebook"
