@@ -34,7 +34,7 @@ VSC_HOSTNAME="euler.ethz.ch"
 # 2. Command line options overwrite defaults
 # 3. Config file options  overwrite command line options
 
-# Configuration file default    : $HOME/.jnb_config
+# Configuration file default    : $HOME/.vsc_config
 VSC_CONFIG_FILE="$HOME/.vsc_config"
 
 # Username default              : no default
@@ -294,8 +294,8 @@ sleep 5
 
 # get remote ip, port and token from files stored on Euler
 echo -e "Receiving ip, port and token from jupyter notebook"
-JNB_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
-JNB_REMOTE_PORT=8899
+VSC_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
+VSC_REMOTE_PORT=8899
 
 # check if the IP, the port and the token are defined
 if  [[ "$VSC_REMOTE_IP" == "" ]]; then
@@ -318,7 +318,7 @@ echo -e "Determining free port on local computer"
 VSC_LOCAL_PORT=$((3 * 2**14 + RANDOM % 2**14))
 # as a replacement. No guarantee that the port is unused, but so far best non-Python solution
 
-echo -e "Using local port: $JNB_LOCAL_PORT"
+echo -e "Using local port: $VSC_LOCAL_PORT"
 
 # write reconnect_info file
 cat <<EOF > $VSC_SCRIPTDIR/reconnect_info
