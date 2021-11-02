@@ -203,7 +203,7 @@ if [ "$VSC_NUM_CPU" -gt "128" ]; then
 fi
 
 if [ "$VSC_NUM_CPU" -gt "0" ]; then
-        echo -e "Requesting $VSC_NUM_CPU CPU cores for running the jupyter notebook"
+        echo -e "Requesting $VSC_NUM_CPU CPU cores for running the code-server"
 fi
 
 # check number of GPUs
@@ -311,7 +311,7 @@ ENDBSUB
 ssh $VSC_SSH_OPT <<ENDSSH
 while ! [ -e /cluster/home/$VSC_USERNAME/vscip -a -s /cluster/home/$VSC_USERNAME/vscip ]; do
         echo 'Waiting for code-server to start, sleep for $VSC_WAITING_INTERVAL sec'
-        sleep $JNB_WAITING_INTERVAL
+        sleep $VSC_WAITING_INTERVAL
 done
 ENDSSH
 
