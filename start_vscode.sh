@@ -221,7 +221,7 @@ if [ "$VSC_NUM_GPU" -gt "8" ]; then
 fi
 
 if [ "$VSC_NUM_GPU" -gt "0" ]; then
-        echo -e "Requesting $VSC_NUM_GPU GPUs for running the jupyter notebook"
+        echo -e "Requesting $VSC_NUM_GPU GPUs for running the code-server"
         VSC_SNUM_GPU="-R \"rusage[ngpus_excl_p=$VSC_NUM_GPU]\""
 else
         VSC_SNUM_GPU=""
@@ -296,7 +296,7 @@ ENDSSH
 ###############################################################################
 
 # run the code-server job on Euler and save the ip of the compute node in the file vscip in the home directory of the user on Euler
-echo -e "Connecting to $VSC_HOSTNAME to start jupyter notebook in a batch job"
+echo -e "Connecting to $VSC_HOSTNAME to start the code-server in a batch job"
 # FIXME: save jobid in a variable, that the script can kill the batch job at the end
 ssh $VSC_SSH_OPT bsub -n $VSC_NUM_CPU -W $VSC_RUN_TIME -R "rusage[mem=$VSC_MEM_PER_CPU_CORE]" $VSC_SNUM_GPU  <<ENDBSUB
 module load $VSC_MODULE_COMMAND
@@ -319,7 +319,7 @@ ENDSSH
 sleep 7
 
 # get remote ip, port and token from files stored on Euler
-echo -e "Receiving ip, port and token from jupyter notebook"
+echo -e "Receiving ip, port and token from the code-server"
 VSC_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
 VSC_REMOTE_PORT=8899
 
@@ -358,7 +358,7 @@ EOF
 
 # setup SSH tunnel from local computer to compute node via login node
 # FIXME: check if the tunnel can be managed via this script (opening, closing) by using a control socket from SSH
-echo -e "Setting up SSH tunnel for connecting the browser to the jupyter notebook"
+echo -e "Setting up SSH tunnel for connecting the browser to the code-server"
 ssh $VSC_SSH_OPT -L $VSC_LOCAL_PORT:$VSC_REMOTE_IP:$VSC_REMOTE_PORT -N &
 
 # SSH tunnel is started in the background, pause 5 seconds to make sure
@@ -367,7 +367,7 @@ sleep 5
 
 # save url in variable
 VSC_URL=http://localhost:$VSC_LOCAL_PORT
-echo -e "Starting browser and connecting it to jupyter notebook"
+echo -e "Starting browser and connecting it to the code-server"
 echo -e "Connecting to url $VSc_URL"
 
 # start local browser if possible
