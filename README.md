@@ -4,7 +4,7 @@ This script can be used to start a batch job on the cluster and then connect Mic
 
 https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
-##Preparation
+## Preparation
 
 The preparation steps only need to be executed once. You need to carry out those steps to set up the basic configuration for your ETH account with regards to the code-server.
 
@@ -53,7 +53,7 @@ This will setup the local configuration (including a password for you) and store
 
 After the server started, terminate it with ctrl+c
 
-## Using the script
+## Running the script
 
 ```
 $ ./start_vscode.sh --help
