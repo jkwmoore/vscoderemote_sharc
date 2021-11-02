@@ -52,17 +52,8 @@ VSC_MEM_PER_CPU_CORE=1024
 # Number of GPUs default        : 0 GPUs
 VSC_NUM_GPU=0
 
-# Waiting interval default      : 60 seconds
-VSC_WAITING_INTERVAL=60
-
 # SSH key location default      : no default
 VSC_SSH_KEY_PATH=""
-
-# Software stack default        : new
-VSC_SOFTWARE_STACK="new"
-
-# Workdir default               : no default
-VSC_WORKING_DIR=""
 
 ###############################################################################
 # Usage instructions                                                          #
@@ -105,7 +96,6 @@ VSC_NUM_CPU=1               # Number of CPU cores to be used on the cluster
 VSC_NUM_GPU=0               # Number of GPUs to be used on the cluster
 VSC_RUN_TIME="01:00"        # Run time limit for the jupyter notebook in hours and minutes HH:MM
 VSC_MEM_PER_CPU_CORE=1024   # Memory limit in MB per core
-VSC_WAITING_INTERVAL=60     # Time interval to check if the job on the cluster already started
 VSC_SSH_KEY_PATH=""         # Path to SSH key with non-standard name
 
 EOF
@@ -153,11 +143,6 @@ do
                 ;;
                 -g|--numgpu)
                 VSC_NUM_GPU=$2
-                shift
-                shift
-                ;;
-                -i|--interval)
-                VSC_WAITING_INTERVAL=$2
                 shift
                 shift
                 ;;
@@ -254,16 +239,8 @@ else
     echo -e "Memory per core set to $VSC_MEM_PER_CPU_CORE MB"
 fi
 
-# check if JNB_WAITING_INTERVAL is an integer
-if ! [[ "$JNB_WAITING_INTERVAL" =~ ^[0-9]+$ ]]; then
-        echo -e "Error: $JNB_WAITING_INTERVAL -> Waiting time interval [seconds] must be an integer, please try again\n"
-        display_help
-else
-    echo -e "Setting waiting time interval for checking the start of the job to $JNB_WAITING_INTERVAL seconds"
-fi
-
 # set modules
-JNB_MODULE_COMMAND="gcc/6.3.0 code-server/3.12.0 eth_proxy"
+VSC_MODULE_COMMAND="gcc/6.3.0 code-server/3.12.0 eth_proxy"
 
 # check if VSC_SSH_KEY_PATH is empty or contains a valid path
 if [ -z "$VSC_SSH_KEY_PATH" ]; then
@@ -293,7 +270,7 @@ fi
 ssh -T $VSC_SSH_OPT <<ENDSSH
 if [ -f /cluster/home/$VSC_USERNAME/vscip ]; then
         echo -e "Found old vscip file, deleting it ..."
-        rm /cluster/home/$VSC_USERNAME/jnbip
+        rm /cluster/home/$VSC_USERNAME/vscip
 fi
 ENDSSH
 
@@ -306,7 +283,7 @@ echo -e "Connecting to $VSC_HOSTNAME to start jupyter notebook in a batch job"
 # FIXME: save jobid in a variable, that the script can kill the batch job at the end
 ssh $VSC_SSH_OPT bsub -n $VSC_NUM_CPU -W $VSC_RUN_TIME -R "rusage[mem=$VSC_MEM_PER_CPU_CORE]" $VSC_SNUM_GPU  <<ENDBSUB
 module load $VSC_MODULE_COMMAND
-export XDG_RUNTIME_DIR="\$HOME/vsc_runtime
+export XDG_RUNTIME_DIR="\$HOME/vsc_runtime"
 VSC_IP_REMOTE="\$(hostname -i)"
 echo "Remote IP:\$VSC_IP_REMOTE" >> /cluster/home/$VSC_USERNAME/vscip
 code-server --bind-addr=\${VSC_IP_REMOTE}:8899
@@ -317,7 +294,7 @@ sleep 5
 
 # get remote ip, port and token from files stored on Euler
 echo -e "Receiving ip, port and token from jupyter notebook"
-JNB_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/jnbip | grep -m1 'Remote IP' | cut -d ':' -f 2")
+JNB_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
 JNB_REMOTE_PORT=8899
 
 # check if the IP, the port and the token are defined
@@ -330,8 +307,8 @@ exit 1
 fi
 
 # print information about IP, port and token
-echo -e "Remote IP address: $JNB_REMOTE_IP"
-echo -e "Remote port: $JNB_REMOTE_PORT"
+echo -e "Remote IP address: $VSC_REMOTE_IP"
+echo -e "Remote port: $VSC_REMOTE_PORT"
 
 # get a free port on local computer
 echo -e "Determining free port on local computer"
