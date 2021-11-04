@@ -127,7 +127,7 @@ Optional arguments:
         -k | --key            SSH_KEY_PATH     Path to SSH key with non-standard name
         -v | --version                         Display version of the script and exit
 
-Examlples:
+Examples:
 
         ./start_vscode.sh -u sfux -n 4 -W 04:00 -m 2048
 
