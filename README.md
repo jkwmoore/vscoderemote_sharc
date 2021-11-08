@@ -89,7 +89,7 @@ After the server started, terminate it with ctrl+c
 
 ### Install
 
-Download the repository with the commnad
+Download the repository with the command
 
 ```
 git clone https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
