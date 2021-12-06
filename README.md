@@ -92,12 +92,6 @@ After the server started, terminate it with ctrl+c
 Download the repository with the command
 
 ```
-git clone https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
-```
-
-Mac OS X:
-
-```
 git clone https://gitlab.ethz.ch/sfux/VSCode_remote_HPC.git
 ```
 
