@@ -4,6 +4,8 @@ This script can be used to start a batch job on the cluster and then connect Mic
 
 https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
+This version has been forked from the (much appreciated) original at https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
+
 ## Requirements
 
 The script assumes that you have setup SSH keys for passwordless access to the cluster. Please find some instructions on how to create SSH keys below:
