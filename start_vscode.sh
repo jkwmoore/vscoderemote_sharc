@@ -2,7 +2,7 @@
 
 ###############################################################################
 #                                                                             #
-#  Script to run on a local computer to start a code-server on Euler and      #
+#  Script to run on a local computer to start a code-server on ShARC and      #
 #  connect it with a local browser to it                                      #
 #                                                                             #
 #  Main author    : Samuel Fux                                                #
@@ -13,7 +13,7 @@
 #  Change history :                                                           #
 #                                                                             #
 #  28.10.2021    Initial version of the script based on Jupyter script        #
-#                                                                             #
+#  Forked and edited for TUoS by J.Moore                                      #
 ###############################################################################
 
 ###############################################################################
@@ -27,7 +27,7 @@ VSC_VERSION="0.1"
 VSC_SCRIPTDIR=$(pwd)
 
 # hostname of the cluster to connect to
-VSC_HOSTNAME="euler.ethz.ch"
+VSC_HOSTNAME="sharc.shef.ac.uk"
 
 # order for initializing configuration options
 # 1. Defaults values set inside this script
@@ -44,7 +44,7 @@ VSC_USERNAME=""
 VSC_NUM_CPU=1
 
 # Runtime limit default         : 1:00 hour
-VSC_RUN_TIME="01:00"
+VSC_RUN_TIME="01:00:00"
 
 # Memory default                : 1024 MB per core
 VSC_MEM_PER_CPU_CORE=1024
@@ -52,8 +52,8 @@ VSC_MEM_PER_CPU_CORE=1024
 # Number of GPUs default        : 0 GPUs
 VSC_NUM_GPU=0
 
-# Waiting interval default      : 60 seconds
-VSC_WAITING_INTERVAL=60
+# Waiting interval default      : 30 seconds
+VSC_WAITING_INTERVAL=30
 
 # SSH key location default      : no default
 VSC_SSH_KEY_PATH=""
@@ -64,13 +64,13 @@ VSC_SSH_KEY_PATH=""
 
 function display_help {
 cat <<-EOF
-$0: Script to start a VSCode on Euler from a local computer
+$0: Script to start a VSCode remote server on ShARC from a local computer
 
 Usage: start_vscode.sh [options]
 
 Options:
 
-        -u | --username       USERNAME         ETH username for SSH connection to Euler
+        -u | --username       USERNAME         TUoS username for SSH connection to ShARC
         -n | --numcores       NUM_CPU          Number of CPU cores to be used on the cluster
         -W | --runtime        RUN_TIME         Run time limit for the code-server in hours and minutes HH:MM
         -m | --memory         MEM_PER_CORE     Memory limit in MB per core
@@ -86,18 +86,18 @@ Optional arguments:
 
 Examples:
 
-        ./start_vscode.sh -u sfux -n 4 -W 04:00 -m 2048
+        ./start_vscode.sh -u te1st -n 4 -W 04:00:00 -m 2048
 
-        ./start_vscode.sh --username sfux --numcores 2 --runtime 01:30 --memory 2048
+        ./start_vscode.sh --username te1st --numcores 2 --runtime 01:30:00 --memory 2048
 
         ./start_vscode.sh -c $HOME/.vsc_config
 
 Format of configuration file:
 
-VSC_USERNAME=""             # ETH username for SSH connection to Euler
+VSC_USERNAME=""             # TUoS username for SSH connection to ShARC
 VSC_NUM_CPU=1               # Number of CPU cores to be used on the cluster
 VSC_NUM_GPU=0               # Number of GPUs to be used on the cluster
-VSC_RUN_TIME="01:00"        # Run time limit for the code-server in hours and minutes HH:MM
+VSC_RUN_TIME="01:00:00"     # Run time limit for the code-server in hours and minutes HH:MM:SS
 VSC_MEM_PER_CPU_CORE=1024   # Memory limit in MB per core
 VSC_WAITING_INTERVAL=60     # Time interval to check if the job on the cluster already started
 VSC_SSH_KEY_PATH=""         # Path to SSH key with non-standard name
@@ -182,10 +182,10 @@ fi
 # check that VSC_USERNAME is not an empty string
 if [ -z "$VSC_USERNAME" ]
 then
-        echo -e "Error: No ETH username is specified, terminating script\n"
+        echo -e "Error: No TUoS username is specified, terminating script\n"
         display_help
 else
-        echo -e "ETH username: $VSC_USERNAME"
+        echo -e "TUoS username: $VSC_USERNAME"
 fi
 
 # check number of CPU cores
@@ -196,9 +196,9 @@ if ! [[ "$VSC_NUM_CPU" =~ ^[0-9]+$ ]]; then
         display_help
 fi
 
-# check if VSC_NUM_CPU is <= 128
-if [ "$VSC_NUM_CPU" -gt "128" ]; then
-        echo -e "Error: $VSC_NUM_CPU -> Larger than 128. No distributed memory supported, therefore the number of CPU cores needs to be smaller or equal to 128\n"
+# check if VSC_NUM_CPU is <= 16
+if [ "$VSC_NUM_CPU" -gt "16" ]; then
+        echo -e "Error: $VSC_NUM_CPU -> Larger than 16. No distributed memory supported, therefore the number of CPU cores needs to be smaller or equal to 16\n"
         display_help
 fi
 
@@ -214,15 +214,15 @@ if ! [[ "$VSC_NUM_GPU" =~ ^[0-9]+$ ]]; then
         display_help
 fi
 
-# check if VSC_NUM_GPU is <= 8
-if [ "$VSC_NUM_GPU" -gt "8" ]; then
-        echo -e "Error: No distributed memory supported, therefore number of GPUs needs to be smaller or equal to 8\n"
+# check if VSC_NUM_GPU is <= 7
+if [ "$VSC_NUM_GPU" -gt "7" ]; then
+        echo -e "Error: No distributed memory supported, therefore number of GPUs needs to be smaller or equal to 7\n"
         display_help
 fi
 
 if [ "$VSC_NUM_GPU" -gt "0" ]; then
         echo -e "Requesting $VSC_NUM_GPU GPUs for running the code-server"
-        VSC_SNUM_GPU="-R \"rusage[ngpus_excl_p=$VSC_NUM_GPU]\""
+        VSC_SNUM_GPU="-l gpu=$VSC_NUM_GPU"
 else
         VSC_SNUM_GPU=""
 fi
@@ -232,9 +232,9 @@ if [ ! "$VSC_NUM_CPU" -gt "0" -a ! "$VSC_NUM_GPU" -gt "0" ]; then
         display_help
 fi
 
-# check if VSC_RUN_TIME is provided in HH:MM format
-if ! [[ "$VSC_RUN_TIME" =~ ^[0-9][0-9]:[0-9][0-9]$ ]]; then
-        echo -e "Error: $VSC_RUN_TIME -> Incorrect format. Please specify runtime limit in the format HH:MM and try again\n"
+# check if VSC_RUN_TIME is provided in HH:MM:SS format
+if ! [[ "$VSC_RUN_TIME" =~ ^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]$ ]]; then
+        echo -e "Error: $VSC_RUN_TIME -> Incorrect format. Please specify runtime limit in the format HH:MM:SS and try again\n"
         display_help
 else
     echo -e "Run time limit set to $VSC_RUN_TIME"
@@ -257,7 +257,7 @@ else
 fi
 
 # set modules
-VSC_MODULE_COMMAND="gcc/6.3.0 code-server/3.12.0 eth_proxy"
+VSC_MODULE_COMMAND="apps/vscode-server/4.2.0/binary dev/git/2.35.2/gcc-4.9.4"
 
 # check if VSC_SSH_KEY_PATH is empty or contains a valid path
 if [ -z "$VSC_SSH_KEY_PATH" ]; then
@@ -284,50 +284,93 @@ if [ -f $VSC_SCRIPTDIR/reconnect_info ]; then
 fi
 
 # check for log files from a previous session in the home directory of the cluster
-ssh -T $VSC_SSH_OPT <<ENDSSH
-if [ -f /cluster/home/$VSC_USERNAME/vscip ]; then
+ssh -T $VSC_SSH_OPT <<ENDSSHIP
+if [ -f /home/$VSC_USERNAME/vscip ]; then
         echo -e "Found old vscip file, deleting it ..."
-        rm /cluster/home/$VSC_USERNAME/vscip
+        rm /home/$VSC_USERNAME/vscip
 fi
-ENDSSH
+ENDSSHIP
+
+ssh -T $VSC_SSH_OPT <<ENDSSHPORT
+if [ -f /home/$VSC_USERNAME/vscport ]; then
+        echo -e "Found old vscport file, deleting it ..."
+        rm /home/$VSC_USERNAME/vscport
+fi
+ENDSSHPORT
+
+VSCJIDPRESENT=$(ssh $VSC_SSH_OPT "[ -e ~/vscjid ] && echo 1 || echo 0")
+
+if [[ "$VSCJIDPRESENT" == 1 ]] ; then
+        echo -e "Found old vscjid file, are you already running a session?  Remove /home/$VSC_USERNAME/vscjid if you are sure this is not a duplicate session and re-run script. Exiting!"
+        exit 1
+fi
+
+###############################################################################
+# Check required SSL certs exist                                              #
+###############################################################################
+
+SSLCERT=$(ssh $VSC_SSH_OPT "[ -e ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem ] && echo 1 || echo 0")
+SSLCERTKEY=$(ssh $VSC_SSH_OPT "[ -e ~/.ssl/vscoderemote/private/vscode_remote_ssl-server-key.pem ] && echo 1 || echo 0")
+
+if [[ "$SSLCERT" == 0 ]] || [[ "$SSLCERTKEY" == 0 ]] ; then
+        echo -e "Missing SSL certificate or key. Exiting! Please 'module load apps/vscode-server/4.2.0/binary' run SSL setup step 'setup_ssl_ca_server_client.sh' first! "
+        exit 1
+fi
 
 ###############################################################################
 # Start code-server on the cluster                                            #
 ###############################################################################
 
-# run the code-server job on Euler and save the ip of the compute node in the file vscip in the home directory of the user on Euler
+# Make a random password
+VSCPASS=$(strings /dev/urandom | grep -o '[[:alnum:]]' | head -n 30 | tr -d '\n'; echo)
+
+# This is being done this way for reasons.
+ssh -T $VSC_SSH_OPT "sed -i '/^password:/d' ~/.config/code-server/config.yaml && echo 'password: $VSCPASS' > ~/.config/code-server/config.yaml"
+
+# run the code-server job on ShARC and save the ip of the compute node in the file vscip in the home directory of the user on ShARC
 echo -e "Connecting to $VSC_HOSTNAME to start the code-server in a batch job"
 # FIXME: save jobid in a variable, that the script can kill the batch job at the end
-ssh $VSC_SSH_OPT bsub -n $VSC_NUM_CPU -W $VSC_RUN_TIME -R "rusage[mem=$VSC_MEM_PER_CPU_CORE]" $VSC_SNUM_GPU  <<ENDBSUB
+echo -e "Connection command:"
+echo -e "============================================================="
+echo -e "ssh ${VSC_SSH_OPT} qsub -V -pe smp ${VSC_NUM_CPU} -l h_rt=${VSC_RUN_TIME} -l rmem=${VSC_MEM_PER_CPU_CORE}M ${VSC_SNUM_GPU}"
+echo -e "=============================================================\n"
+ssh ${VSC_SSH_OPT} qsub -N VSCodeServer -pe smp ${VSC_NUM_CPU} -l h_rt=${VSC_RUN_TIME} -l rmem=${VSC_MEM_PER_CPU_CORE}M ${VSC_SNUM_GPU} <<ENDQSUB
+source ${HOME}/.bashrc
 module load $VSC_MODULE_COMMAND
 export XDG_RUNTIME_DIR="\$HOME/vsc_runtime"
-VSC_IP_REMOTE="\$(hostname -i)"
-echo "Remote IP:\$VSC_IP_REMOTE" >> /cluster/home/$VSC_USERNAME/vscip
-code-server --bind-addr=\${VSC_IP_REMOTE}:8899
-ENDBSUB
+VSC_IP_REMOTE="\$(hostname)"
+#VSC_PORT_REMOTE="8899"
+VSC_PORT_REMOTE=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+echo "Remote IP:\$VSC_IP_REMOTE" > /home/$VSC_USERNAME/vscip
+echo "Remote PORT:\$VSC_PORT_REMOTE" > /home/$VSC_USERNAME/vscport
+echo "Remote JOB ID:\$JOB_ID" > /home/$VSC_USERNAME/vscjid
+code-server --cert ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem --cert-key ~/.ssl/vscoderemote/private/vscode_remote_ssl-server-key.pem --bind-addr=\${VSC_IP_REMOTE}:\${VSC_PORT_REMOTE}
+ENDQSUB
 
 # wait until batch job has started, poll every $VSC_WAITING_INTERVAL seconds to check if /cluster/home/$VSC_USERNAME/vscip exists
 # once the file exists and is not empty the batch job has started
 ssh $VSC_SSH_OPT <<ENDSSH
-while ! [ -e /cluster/home/$VSC_USERNAME/vscip -a -s /cluster/home/$VSC_USERNAME/vscip ]; do
+while ! [ -e /home/$VSC_USERNAME/vscip -a -s /home/$VSC_USERNAME/vscip ]; do
         echo 'Waiting for code-server to start, sleep for $VSC_WAITING_INTERVAL sec'
         sleep $VSC_WAITING_INTERVAL
 done
 ENDSSH
 
+
 # give the code-server a few seconds to start
 sleep 7
 
-# get remote ip, port and token from files stored on Euler
+# get remote ip, port and token from files stored on ShARC
 echo -e "Receiving ip, port and token from the code-server"
-VSC_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /cluster/home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
-VSC_REMOTE_PORT=8899
+VSC_REMOTE_IP=$(ssh $VSC_SSH_OPT "cat /home/$VSC_USERNAME/vscip | grep -m1 'Remote IP' | cut -d ':' -f 2")
+VSC_REMOTE_PORT=$(ssh $VSC_SSH_OPT "cat /home/$VSC_USERNAME/vscport | grep -m1 'Remote PORT' | cut -d ':' -f 2")
+VSC_REMOTE_JID=$(ssh $VSC_SSH_OPT "cat /home/$VSC_USERNAME/vscjid | grep -m1 'Remote JOB ID' | cut -d ':' -f 2")
 
 # check if the IP, the port and the token are defined
 if  [[ "$VSC_REMOTE_IP" == "" ]]; then
 cat <<EOF
 Error: remote ip is not defined. Terminating script.
-* Please check login to the cluster and check with bjobs if the batch job on the cluster is running and terminate it with bkill.
+* Please check login to the cluster and check with qstat if the batch job on the cluster is running and terminate it with qdel.
 EOF
 exit 1
 fi
@@ -335,6 +378,7 @@ fi
 # print information about IP, port and token
 echo -e "Remote IP address: $VSC_REMOTE_IP"
 echo -e "Remote port: $VSC_REMOTE_PORT"
+echo -e "Remote Job ID: $VSC_REMOTE_JID"
 
 # get a free port on local computer
 echo -e "Determining free port on local computer"
@@ -342,6 +386,7 @@ echo -e "Determining free port on local computer"
 # FIXME: check if there is a solution that does not require python (as some Windows computers don't have a usable Python installed by default)
 # if python is not available, one could use
 VSC_LOCAL_PORT=$((3 * 2**14 + RANDOM % 2**14))
+#VSC_LOCAL_PORT=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
 # as a replacement. No guarantee that the port is unused, but so far best non-Python solution
 
 echo -e "Using local port: $VSC_LOCAL_PORT"
@@ -352,6 +397,7 @@ Restart file
 Remote IP address : $VSC_REMOTE_IP
 Remote port       : $VSC_REMOTE_PORT
 Local port        : $VSC_LOCAL_PORT
+Cluster Job ID    : $VSC_REMOTE_JID
 SSH tunnel        : ssh $VSC_SSH_OPT -L $VSC_LOCAL_PORT:$VSC_REMOTE_IP:$VSC_REMOTE_PORT -N &
 URL               : http://localhost:$VSC_LOCAL_PORT
 EOF
@@ -361,14 +407,17 @@ EOF
 echo -e "Setting up SSH tunnel for connecting the browser to the code-server"
 ssh $VSC_SSH_OPT -L $VSC_LOCAL_PORT:$VSC_REMOTE_IP:$VSC_REMOTE_PORT -N &
 
+# Since we want to terminate this tunnel when the session is over grab it now.
+SSH_TUNNEL_PID=$!
+
 # SSH tunnel is started in the background, pause 5 seconds to make sure
 # it is established before starting the browser
 sleep 5
 
 # save url in variable
-VSC_URL=http://localhost:$VSC_LOCAL_PORT
+VSC_URL=https://localhost:$VSC_LOCAL_PORT
 echo -e "Starting browser and connecting it to the code-server"
-echo -e "Connecting to url $VSc_URL"
+echo -e "Connecting to url $VSC_URL"
 
 # start local browser if possible
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
@@ -381,3 +430,31 @@ else
         echo -e "Your operating system does not allow to start the browser automatically."
         echo -e "Please open $VSC_URL in your browser."
 fi
+
+echo -e "This session should now have opened your web browser."
+
+# Inform user of certificate fingerprints
+
+echo -e "=============================================================\n"
+echo -e "Your server certificate has the following fingerprints: \n"
+ssh -T $VSC_SSH_OPT <<GETCERT
+openssl x509 -in ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem -fingerprint -sha256 -noout
+openssl x509 -in ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem -fingerprint -sha1 -noout
+GETCERT
+echo -e "=============================================================\n"
+echo -e "Please check your SSL fingerprints match those above, trust the certificate in browser and then login with your VSCode config password.\n"
+echo -e "Your VSCode config password is: \n"
+echo -e $VSCPASS
+echo -e "\n"
+
+###############################################################################
+# Stop code-server on the cluster                                             #
+###############################################################################
+
+read -p "Please press enter to end the session, disconnect the SSH tunnel and terminate the job on the cluster."
+
+# Kill the tunnel
+kill $SSH_TUNNEL_PID
+
+# Terminate the job on ShARC and remove the vscjid file.
+ssh -T $VSC_SSH_OPT "qdel $VSC_REMOTE_JID && rm /home/$VSC_USERNAME/vscjid /home/$VSC_USERNAME/vscip /home/$VSC_USERNAME/vscport"
