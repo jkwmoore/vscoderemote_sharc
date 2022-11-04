@@ -17,13 +17,13 @@ Currently the script should run on Linux (tested on Ubuntu), Mac OS X (untested)
 CentOS:
 
 ```
-yum install xdg-utils
+yum install xdg-utils binutils
 ```
 
 Ubuntu:
 
 ```
-apt-get install xdg-utils
+apt-get install xdg-utils binutils
 ```
 
 You can either use the -k option of the script to specify the location of the SSH key, or even better use an SSH config file with the IdentityFile option by adding the following lines in your $HOME/.ssh/config file: 
