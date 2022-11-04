@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ###############################################################################
 #                                                                             #
@@ -331,11 +331,11 @@ ssh -T $VSC_SSH_OPT "sed -i '/^password:/d' ~/.config/code-server/config.yaml &&
 echo -e "Connecting to $VSC_HOSTNAME to start the code-server in a batch job"
 # FIXME: save jobid in a variable, that the script can kill the batch job at the end
 echo -e "Connection command:"
-echo -e "============================================================="
+echo -e "============================================================================================"
 echo -e "ssh ${VSC_SSH_OPT} qsub -V -pe smp ${VSC_NUM_CPU} -l h_rt=${VSC_RUN_TIME} -l rmem=${VSC_MEM_PER_CPU_CORE}M ${VSC_SNUM_GPU}"
-echo -e "=============================================================\n"
+echo -e "============================================================================================\n"
 ssh ${VSC_SSH_OPT} qsub -N VSCodeServer -pe smp ${VSC_NUM_CPU} -l h_rt=${VSC_RUN_TIME} -l rmem=${VSC_MEM_PER_CPU_CORE}M ${VSC_SNUM_GPU} <<ENDQSUB
-source ${HOME}/.bashrc
+source \${HOME}/.bashrc
 module load $VSC_MODULE_COMMAND
 export XDG_RUNTIME_DIR="\$HOME/vsc_runtime"
 VSC_IP_REMOTE="\$(hostname)"
@@ -424,24 +424,22 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
         xdg-open $VSC_URL
 elif [[ "$OSTYPE" == "darwin"* ]]; then
         open $VSC_URL
-elif [[ "$OSTYPE" == "msys" ]]; then # Git Bash on Windows 10
+else [[ "$OSTYPE" == "msys" ]]; # Git Bash on Windows 10
         start $VSC_URL
-else
-        echo -e "Your operating system does not allow to start the browser automatically."
-        echo -e "Please open $VSC_URL in your browser."
 fi
 
-echo -e "This session should now have opened your web browser."
+echo -e "==========================================================================================================================\n"
+echo -e "This session should now have opened your web browser. If it has failed to do so please open $VSC_URL in your browser."
 
 # Inform user of certificate fingerprints
 
-echo -e "=============================================================\n"
+echo -e "==========================================================================================================================\n"
 echo -e "Your server certificate has the following fingerprints: \n"
 ssh -T $VSC_SSH_OPT <<GETCERT
 openssl x509 -in ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem -fingerprint -sha256 -noout
 openssl x509 -in ~/.ssl/vscoderemote/vscode_remote_ssl-server-cert.pem -fingerprint -sha1 -noout
 GETCERT
-echo -e "=============================================================\n"
+echo -e "==========================================================================================================================\n"
 echo -e "Please check your SSL fingerprints match those above, trust the certificate in browser and then login with your VSCode config password.\n"
 echo -e "Your VSCode config password is: \n"
 echo -e $VSCPASS
@@ -458,3 +456,4 @@ kill $SSH_TUNNEL_PID
 
 # Terminate the job on ShARC and remove the vscjid file.
 ssh -T $VSC_SSH_OPT "qdel $VSC_REMOTE_JID && rm /home/$VSC_USERNAME/vscjid /home/$VSC_USERNAME/vscip /home/$VSC_USERNAME/vscport"
+exit

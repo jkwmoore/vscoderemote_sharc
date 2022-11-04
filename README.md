@@ -8,22 +8,26 @@ This version has been forked from the (much appreciated) original at https://git
 
 ## Requirements
 
+### General requirements
+
 The script assumes that you have setup SSH keys for passwordless access to the cluster. Please find some instructions on how to create SSH keys below:
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-ubuntu-22-04
 
-Currently the script should run on Linux (tested on Ubuntu), Mac OS X (untested) and Windows (using WSL/WSL2 or git bash also untested). When using a Linux computer, please make sure that xdg-open is installed. This package is used to automatically start your default browser. You can install it with the command
+Currently the script should run on Linux (tested on Ubuntu), Mac OS X (untested) and Windows (using WSL/WSL2  which has been tested with Ubuntu or git bash which is untested). 
+
+When using a Linux computer, please make sure that ```xdg-open``` is available. This package is used to automatically start your default browser. You can install it with the command
 
 CentOS:
 
 ```
-yum install xdg-utils binutils
+yum install xdg-utils binutils ssh
 ```
 
 Ubuntu:
 
 ```
-apt-get install xdg-utils binutils
+apt-get install xdg-utils binutils ssh
 ```
 
 You can either use the -k option of the script to specify the location of the SSH key, or even better use an SSH config file with the IdentityFile option by adding the following lines in your $HOME/.ssh/config file: 
@@ -33,12 +37,21 @@ You can either use the -k option of the script to specify the location of the SS
  IdentityFile ~/.ssh/id_ed25519_sharc
 ```
 
-## Preparation
+### WSL requirements
+
+If using WSL you may also need to set your ```DISPLAY``` variable prior to running the script in order to get X11 GUI forwarding working correctly (for automatic browser opening). e.g.
+
+```
+export DISPLAY=localhost:0
+```
+
+In addition, if you wish to leverage your existing Windows host machine's OpenSSH ssh-agent you can follow the instructions here: https://stuartleeks.com/posts/wsl-ssh-key-forward-to-windows/
+
+## Preparation Steps
 
 The preparation steps only need to be executed once. You need to carry out those steps to set up the basic configuration for your ShARC account with regards to the code-server.
 
-* Login to the ShARC cluster
-* Start and interactive job with
+Login to the ShARC cluster and start an interactive job with:
 
 ```
 qrshx
@@ -65,9 +78,9 @@ Start the code-server once with the command code-server
 
 This will setup the local configuration (including a password for you) and store it in your home directory in $HOME/.config/code-server/config.yaml
 
-After the server started, terminate it with Ctrl+C
+After the server has fully started, terminate it by pressing Ctrl+C .
 
-Now generate your SSL certificates (these secure the communications between your local device and the endpoint node.)
+Now you should generate your SSL certificates (these secure the communications between your local device and the endpoint worker node running the vscode server.)
 
 ```
 [te1st@sharc.shef.ac.uk ~]$ setup_ssl_ca_server_client.sh
@@ -75,9 +88,9 @@ Now generate your SSL certificates (these secure the communications between your
 
 
 
-## Usage
+## Usage instructions
 
-### Install
+### Installation
 
 Download the repository with the command
 
@@ -85,9 +98,9 @@ Download the repository with the command
 git clone git@github.com:jkwmoore/vscoderemote_sharc.git
 ```
 
-### Run VSCode in a batch job
+### Starting VSCode Remote server using a batch job
 
-The start_vscode.sh script needs to be executed on your local computer. Please find below the list of options that can be used with the script:
+The start_vscode.sh script needs to be executed on your local computer but will spawn the VS Code remote server on a ShARC worker node. Please find below the list of options that can be used with the script:
 
 ```
 $ ./start_vscode.sh --help
@@ -145,3 +158,4 @@ Please note that when you finish working with the code-server, you need to termi
 ## Contributions
 * Andreas Lugmayr
 * James Moore
+* Nicholas Musembi
