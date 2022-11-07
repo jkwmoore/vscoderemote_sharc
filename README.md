@@ -1,3 +1,6 @@
+
+# WARNING - RECENT FORK - NOT FIXED FOR BESSEMER YET
+
 # VSCode Remote HPC
 
 This script can be used to start a batch job on the cluster and then connect Microsoft VSCode to it. The script is inspired by the blog 
