@@ -7,7 +7,7 @@ The script is inspired by the blog
 https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
 This version has been forked from the (much appreciated) original at https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
-
+## Table of contents
 * [Requirements](#requirements)
   * [General requirements](#general-requirements)
   * [WSL requirements](#wsl-requirements)
