@@ -7,6 +7,22 @@ https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
 This version has been forked from the (much appreciated) original at https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
 
+* [Requirements](#requirements)
+  * [General requirements](#general-requirements)
+  * [WSL requirements](#wsl-requirements)
+* [Preparation Steps](#preparation-steps)
+  * [ShARC preparation](#sharc-preparation)
+  * [Bessemer preparation](#bessemer-preparation)
+  * [Initiate code server](#initiate-code-server)
+* [Usage instructions](#usage-instructions)
+  * [Installation on your local machine](#installation-on-your-local-machine)
+  * [Starting VSCode Remote server using a batch job on ShARC](#starting-vscode-remote-server-using-a-batch-job-on-sharc)
+  * [Starting VSCode Remote server using a batch job on Bessemer](#starting-vscode-remote-server-using-a-batch-job-on-bessemer)
+  * [Reconnect to a code-server session](#reconnect-to-a-code-server-session)
+  * [Cleanup after the job](#cleanup-after-the-job)
+* [Main author](#main-author)
+* [Contributions](#contributions)
+
 ## Requirements
 
 ### General requirements
