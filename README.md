@@ -32,7 +32,7 @@ The script assumes that you have setup SSH keys for passwordless access to the c
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-ubuntu-22-04
 
-Currently the script should run on Linux (tested on Ubuntu), Mac OS X (untested) and Windows (using WSL/WSL2  which has been tested with Ubuntu or git bash which is untested). 
+Currently the script should run on Linux (tested on Ubuntu), Mac OS X (untested) and Windows (using [WSL/WSL2](#wsl-requirements)  which has been tested with Ubuntu or git bash which is untested). 
 
 When using a Linux computer, please make sure that ```xdg-open``` is available. This package is used to automatically start your default browser. You can install it with the command
 
@@ -61,6 +61,8 @@ or
 ```
 
 ### WSL requirements
+
+To install WSL/WSL2 on Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 you can follow instructions here: https://learn.microsoft.com/en-us/windows/wsl/install
 
 If using WSL you may also need to set your ```DISPLAY``` variable prior to running the script in order to get X11 GUI forwarding working correctly (for automatic browser opening). e.g.
 
