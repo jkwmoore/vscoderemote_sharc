@@ -1,7 +1,8 @@
 
 # VSCode Remote HPC
 
-This script can be used to start a batch job on the cluster and then connect Microsoft VSCode to it. The script is inspired by the blog 
+Following the instructions below you will initaite the code server on the cluster, then from your local machine call a script which will start a batch job on the cluster and connect your local machine to it. This will enable you to access the initated Microsoft VSCode session on the cluster through a local browser. 
+The script is inspired by the blog
 
 https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
