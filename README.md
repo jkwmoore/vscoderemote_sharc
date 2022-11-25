@@ -8,6 +8,7 @@ https://medium.com/@isaiah.taylor/use-vs-code-on-a-supercomputer-15e4cbbb1bc2
 
 This version has been forked from the (much appreciated) original at https://gitlab.ethz.ch/sfux/VSCode_remote_HPC
 ## Table of contents
+* [Overview of the process](#overview-of-the-process)
 * [Requirements](#requirements)
   * [General requirements](#general-requirements)
   * [WSL requirements](#wsl-requirements)
@@ -24,6 +25,10 @@ This version has been forked from the (much appreciated) original at https://git
 * [Main author](#main-author)
 * [Contributions](#contributions)
 
+## Overview of the process
+
+
+![plot](./img/VSCode-server.jpg)
 ## Requirements
 
 ### General requirements
